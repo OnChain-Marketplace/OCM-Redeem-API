@@ -38,7 +38,7 @@ Setting up the Systemd service requires you to enter the following command:
 `touch /lib/systemd/system/ocw-redeem.service`
 which will create the file that the service will be stored in, inside the file, paste the following inside it:
 
-[Unit]
+```[Unit]
 
 Description= OCW Redeem App
 
@@ -59,3 +59,4 @@ Restart=on-failure
 [Install]
 
 WantedBy=multi-user.target
+```
