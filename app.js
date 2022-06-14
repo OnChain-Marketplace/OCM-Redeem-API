@@ -14,7 +14,7 @@ server.use(
     origin: "165.232.173.55",
   })
 );
-server.listen(3000, () => {
+server.listen(80, () => {
   console.log("Server Listening");
 });
 
