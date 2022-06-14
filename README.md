@@ -1,4 +1,4 @@
-# OCW-Redeem-API
+# OCM-Redeem-API
 
 # Table of Contents
 
@@ -36,9 +36,10 @@ It is highly recommended to use a instance in Linux. A systemd service is recomm
 Setting up the Systemd service requires you to enter the following command:
 
 `touch /lib/systemd/system/ocm-redeem.service`
+
 which will create the file that the service will be stored in, inside the file, paste the following inside it:
 
-[Unit]
+```[Unit]
 
 Description= OCW Redeem App
 
@@ -59,7 +60,7 @@ Restart=on-failure
 [Install]
 
 WantedBy=multi-user.target
-"
+```
 
 After plugging this inm you have to enable the systemd service, do so by running this command:
 
