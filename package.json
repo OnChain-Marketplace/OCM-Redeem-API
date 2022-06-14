@@ -1,21 +1,21 @@
 {
-  "name": "ocw-redeem-api",
+  "name": "ocm-redeem-api",
   "version": "1.0.0",
-  "description": "OCW Redeem API",
+  "description": "OCM Redeem API",
   "main": "index.js",
   "scripts": {
     "watch": "nodemon --exec 'node app.js' --ignore 'logs/' --ignore 'main.js'"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tatejuan12/OCW-Redeem-API.git"
+    "url": "git+https://github.com/tatejuan12/OCM-Redeem-API.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/tatejuan12/OCW-Redeem-API/issues"
+    "url": "https://github.com/tatejuan12/OCM-Redeem-API/issues"
   },
-  "homepage": "https://github.com/tatejuan12/OCW-Redeem-API#readme",
+  "homepage": "https://github.com/tatejuan12/OCM-Redeem-API#readme",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^8.6.0",

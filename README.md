@@ -35,7 +35,7 @@ It is highly recommended to use a instance in Linux. A systemd service is recomm
 
 Setting up the Systemd service requires you to enter the following command:
 
-`touch /lib/systemd/system/ocw-redeem.service`
+`touch /lib/systemd/system/ocm-redeem.service`
 which will create the file that the service will be stored in, inside the file, paste the following inside it:
 
 [Unit]
@@ -45,7 +45,7 @@ Description= OCW Redeem App
 After=network.target
 
 [Service]
-
+"
 EnvironmentFile=`path to your .env file`
 
 Type=simple
@@ -59,3 +59,10 @@ Restart=on-failure
 [Install]
 
 WantedBy=multi-user.target
+"
+
+After plugging this inm you have to enable the systemd service, do so by running this command:
+
+`systemctl enable --now ocm-redeem.service`
+
+The service is now enable and started. Whenever VPS is restarted or application crashes, the node app will run automatically.
