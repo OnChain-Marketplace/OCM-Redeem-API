@@ -46,7 +46,7 @@ Description= OCW Redeem App
 After=network.target
 
 [Service]
-"
+
 EnvironmentFile=`path to your .env file`
 
 Type=simple
@@ -62,7 +62,7 @@ Restart=on-failure
 WantedBy=multi-user.target
 ```
 
-After plugging this inm you have to enable the systemd service, do so by running this command:
+After plugging this in you have to enable the systemd service, do so by running this command:
 
 `systemctl enable --now ocm-redeem.service`
 
