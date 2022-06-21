@@ -12,7 +12,7 @@
 - OnChain Whales
 - OnChain Marketplace
 - Cosmos Capital Management
-  -Juan Tate (https://github.com/tatejuan12)
+  \t-Juan Tate (https://github.com/tatejuan12)
 
 ## About
 
