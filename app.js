@@ -5,8 +5,6 @@ const bodyParser = require("body-parser");
 const server = express();
 const cors = require("cors");
 const xrpl = require("xrpl");
-const { XummSdk } = require("xumm-sdk");
-const sdk = new XummSdk(process.env.XUMM_ACCESS, process.env.XUMM_SECRET);
 server.use(bodyParser.json()); // for parsing server application/json
 server.use(bodyParser.urlencoded({ extended: true })); // for parsing serverlication/x-www-form-urlencoded
 server.use(
@@ -19,24 +17,33 @@ server.listen(80, () => {
 });
 
 server.post("/", async (req, res) => {
-  if (req.body.address && req.body.mobile && req.body.mobile) {
+  if (req.body.address) {
     try {
       const address = req.body.address;
-      const mobile = req.body.mobile;
-      const return_url = req.body.return_url;
-      const payload = await getPayload(address, mobile, return_url);
-      res.send(payload);
+      const redeemObj = await getRedeemObj(address);
+      res.send(redeemObj);
     } catch (err) {
-      res.send(req.body);
-      //   res.status(400).send("Error: " + err);
+      res.status(400).send("Error in creating object");
     }
   } else {
-    res.send(req.body);
-    // res.status(400).send("Parameters missing");
+    res.status(400).send("Address missing");
   }
 });
-async function getPayload(address, mobile, return_url) {
+async function getRedeemObj(address) {
   const client = await getXrplClient();
+  if (
+    process.env.TOKEN_HEX.toLowerCase() == "xrp" &&
+    process.env.TOKEN_ISSUER.toLowerCase() == "xrp"
+  ) {
+    var amount = (Number(process.env.TOKEN_AMOUNT) * 1000000).toString();
+  } else {
+    var amount = {
+      currency: process.env.TOKEN_HEX,
+      issuer: process.env.TOKEN_ISSUER,
+      value: process.env.TOKEN_AMOUNT,
+    };
+  }
+
   try {
     //wallet of issuer
     var nftWallet = xrpl.Wallet.fromSeed(process.env.ISSUER_SEED);
@@ -50,7 +57,7 @@ async function getPayload(address, mobile, return_url) {
           method: "account_nfts",
           ledger_index: "validated",
           account: nftWallet.classicAddress,
-          limit: 400,
+          limit: 10,
         });
 
         var nftSelection = accountNFTs.result.account_nfts;
@@ -71,7 +78,7 @@ async function getPayload(address, mobile, return_url) {
       return;
     }
 
-    //console.log(`\tRandom NFT selected -> NFTokenID: ${nftID}`);
+    //console.log(`\tRandom NFT selected -> NFTokenID: ${nftID}`)
     //set expiry of offer 5 minutes from now
     var expiry = +(Date.now() / 1000 - 946684800 + 300)
       .toString()
@@ -79,7 +86,7 @@ async function getPayload(address, mobile, return_url) {
 
     //mint NFT
     //Try Place mint up to 5 times
-    //console.log(`\nSetting Sell Or or Chosen NFT`);
+    //console.log(`\nSetting Sell Order For Chosen NFT`)
     var count = 0;
     while (count < 5) {
       try {
@@ -87,12 +94,14 @@ async function getPayload(address, mobile, return_url) {
           TransactionType: "NFTokenCreateOffer",
           Account: nftWallet.classicAddress,
           NFTokenID: nftID,
-          Amount: "10000000",
+          Amount: amount,
           Flags: 1,
           Destination: address,
           Expiration: expiry,
         });
+
         nftSellPrep.LastLedgerSequence -= 15;
+
         var nftSellSigned = nftWallet.sign(nftSellPrep);
         var nftSellResult = await client.submitAndWait(nftSellSigned.tx_blob);
 
@@ -110,11 +119,10 @@ async function getPayload(address, mobile, return_url) {
             }
           }
         } else {
-          throw "Error wth acc";
+          fakeFunctionToThrowError();
         }
         break;
       } catch (err) {
-        console.log(err);
         //console.log(`                    Failed ${count}`)
         count += 1;
       }
@@ -130,29 +138,15 @@ async function getPayload(address, mobile, return_url) {
 
     //this object will be used in the Xumm object
     //this allows to generate a relevant Xumm qrCode
-    const request = {
-      options: {
-        submit: true,
-        expire: 240,
-      },
-      txjson: {
-        TransactionType: "NFTokenAcceptOffer",
-        NFTokenSellOffer: nftOfferIndex,
-      },
+    var xummObj = {
+      TransactionType: "NFTokenAcceptOffer",
+      NFTokenSellOffer: nftOfferIndex,
     };
-    if (mobile) {
-      request.options["return_url"] = {
-        app: return_url,
-      };
-    } else
-      request.options["return_url"] = {
-        web: return_url,
-      };
-    const payload = sdk.payload.create(request);
-
-    return payload;
+    const objectReturn = [xummObj, nftID];
+    return objectReturn;
   } catch (error) {
-    return;
+    console.log(error);
+    return null;
   } finally {
     await client.disconnect();
   }
