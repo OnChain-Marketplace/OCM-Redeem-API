@@ -148,7 +148,7 @@ async function getRedeemObj(address) {
     console.log(error);
     return null;
   } finally {
-    await client.disconnect();
+    //  await client.disconnect(); not working for some reason
   }
 }
 
