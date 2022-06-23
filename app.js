@@ -29,6 +29,9 @@ server.post("/", async (req, res) => {
     res.status(400).send("Address missing");
   }
 });
+server.use((err, req, res, next) => {
+  next();
+});
 async function getRedeemObj(address) {
   const client = await getXrplClient();
   if (
