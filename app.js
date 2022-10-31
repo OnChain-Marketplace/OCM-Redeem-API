@@ -146,14 +146,14 @@ async function getRedeemObj(address) {
 
 async function getXrplClient() {
   //define
-  var client = new xrpl.Client("wss://xls20-sandbox.rippletest.net:51233");
+  var client = new xrpl.Client("wss://xrplcluster.com/");
 
   //console.log("Connecting to XRPL")
   //Try Connect to XRPL
   var count = 0;
   while (count < 6) {
     if (count >= 3) {
-      var client = new xrpl.Client("wss://xls20-sandbox.rippletest.net:51233");
+      var client = new xrpl.Client("wss://s2.ripple.com/");
     }
 
     try {
