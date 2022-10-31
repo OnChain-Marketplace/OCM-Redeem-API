@@ -23,7 +23,7 @@ server.post("/", async (req, res) => {
       const redeemObj = await getRedeemObj(address);
       res.send(redeemObj);
     } catch (err) {
-      res.status(400).send("Error in creating object");
+      res.status(400).send(err);
     }
   } else {
     res.status(400).send("Address missing");
@@ -46,8 +46,6 @@ async function getRedeemObj(address) {
       value: process.env.TOKEN_AMOUNT,
     };
   }
-
-  try {
     //wallet of issuer
     var nftWallet = xrpl.Wallet.fromSeed(process.env.ISSUER_SEED);
 
@@ -68,6 +66,8 @@ async function getRedeemObj(address) {
           nftSelection[
             Math.floor(Math.random() * (nftSelection.length - 1 - 0 + 1) + 0)
           ].NFTokenID;
+          console.log(nftID);
+          console.log(nftSelection);
         break;
       } catch (err) {
         //console.log(`                    Failed ${count}`)
@@ -76,10 +76,7 @@ async function getRedeemObj(address) {
     }
 
     //If could no select NFT in 5 attempts
-    if (nftID == undefined) {
-      //console.log('Could Not Select NFT')
-      return;
-    }
+    if (nftID == undefined) throw 'Could Not Select NFT';
 
     //console.log(`\tRandom NFT selected -> NFTokenID: ${nftID}`)
     //set expiry of offer 5 minutes from now
@@ -132,10 +129,7 @@ async function getRedeemObj(address) {
     }
 
     //if could not sell NFT
-    if (nftOfferIndex == undefined) {
-      //console.log('Could Not Place order')
-      return;
-    }
+    if (nftOfferIndex == undefined) throw 'Could Not Place order';
 
     //console.log(`\tOffer Index: ${nftOfferIndex}`)
 
@@ -147,24 +141,19 @@ async function getRedeemObj(address) {
     };
     const objectReturn = [xummObj, nftID];
     return objectReturn;
-  } catch (error) {
-    console.log(error);
-    return null;
-  } finally {
-    //  await client.disconnect(); not working for some reason
-  }
+
 }
 
 async function getXrplClient() {
   //define
-  var client = new xrpl.Client("wss://xrplcluster.com/");
+  var client = new xrpl.Client("wss://xls20-sandbox.rippletest.net:51233");
 
   //console.log("Connecting to XRPL")
   //Try Connect to XRPL
   var count = 0;
   while (count < 6) {
     if (count >= 3) {
-      var client = new xrpl.Client("wss://s2.ripple.com/");
+      var client = new xrpl.Client("wss://xls20-sandbox.rippletest.net:51233");
     }
 
     try {
