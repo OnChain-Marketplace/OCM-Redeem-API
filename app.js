@@ -123,6 +123,7 @@ async function getRedeemObj(address) {
         }
         break;
       } catch (err) {
+        console.log(err)
         //console.log(`                    Failed ${count}`)
         count += 1;
       }
