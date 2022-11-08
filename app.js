@@ -58,7 +58,7 @@ async function getRedeemObj(address) {
           method: "account_nfts",
           ledger_index: "validated",
           account: nftWallet.classicAddress,
-          limit: 10,
+          limit: 400,
         });
 
         var nftSelection = accountNFTs.result.account_nfts;
