@@ -75,10 +75,10 @@ async function getRedeemObj(address) {
           }
 
           //CHECK FILE EXISTS
-          if (!(fs.existsSync(__dirname+'wallets.json'))) fs.writeFileSync(__dirname+'wallets.json', (JSON.stringify({}, null, 2)))
+          if (!(fs.existsSync(__dirname+'/wallets.json'))) fs.writeFileSync(__dirname+'/wallets.json', (JSON.stringify({}, null, 2)))
 
           //READ FILE
-          var wallets = JSON.parse(fs.readFileSync(__dirname+'wallets.json'))
+          var wallets = JSON.parse(fs.readFileSync(__dirname+'/wallets.json'))
 
           //CHECK ADDRESS EXISTS IN FILE, IF NOT ADD IT
           if (!(address in wallets)) {
@@ -142,7 +142,7 @@ async function getRedeemObj(address) {
           }
 
           //SAVE UPDATED JSON
-          fs.writeFileSync(__dirname + 'wallets.json', (JSON.stringify(wallets, null, 0)))
+          fs.writeFileSync(__dirname + '/wallets.json', (JSON.stringify(wallets, null, 0)))
 
           var nftID = nftToSell
           console.log(`\tSelling ${nftID}`);
