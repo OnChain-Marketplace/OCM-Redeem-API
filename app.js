@@ -142,7 +142,7 @@ async function getRedeemObj(address) {
           }
 
           //SAVE UPDATED JSON
-          fs.writeFileSync('wallets.json', (JSON.stringify(wallets, null, 2)))
+          fs.writeFileSync('wallets.json', (JSON.stringify(wallets, null, 0)))
 
           var nftID = nftToSell
           console.log(`\tSelling ${nftID}`);
