@@ -40,7 +40,8 @@ Setting up the Systemd service requires you to enter the following command:
 
 which will create the file that the service will be stored in, inside the file, paste the following inside:
 
-```[Unit]
+```
+[Unit]
 
 Description= OCW Redeem App
 
