@@ -21,7 +21,8 @@ server.post("/", async (req, res) => {
   if (req.body.address) {
     try {
       const address = req.body.address;
-      const redeemObj = await getRedeemObj(address);
+      const UUID = req.body.UUID;
+      const redeemObj = await getRedeemObj(address, UUID);
       res.send(redeemObj);
     } catch (err) {
       res.status(400).send(err);
@@ -33,7 +34,7 @@ server.post("/", async (req, res) => {
 server.use((err, req, res, next) => {
   next();
 });
-async function getRedeemObj(address) {
+async function getRedeemObj(address, id) {
   const client = await getXrplClient();
   if (
     process.env.TOKEN_HEX.toLowerCase() == "xrp" &&
@@ -80,19 +81,25 @@ async function getRedeemObj(address) {
           //READ FILE
           var wallets = JSON.parse(fs.readFileSync(__dirname+'/wallets.json'))
 
-          //CHECK ADDRESS EXISTS IN FILE, IF NOT ADD IT
-          if (!(address in wallets)) {
-              wallets[address] = {
+          //CHECK IF THERE IS EXISTING DATA WITH OLD METHOD
+          if(address in wallets && !(id in wallets)){
+            wallets[id] = wallets[address]
+            delete wallets[address]
+          }
+
+          //CHECK ID EXISTS IN FILE, IF NOT ADD IT
+          if (!(id in wallets)) {
+              wallets[id] = {
                   "nft": undefined,
                   "date": 0
               }
           }
 
-          //CHECK IF THE NFT ASSIGNED TO THE WALLET STILL EXISTS
+          //CHECK IF THE NFT ASSIGNED TO THE ID STILL EXISTS
           var nftExists = false
           for (a in nftSelection) { //CYCLE THROUGH HELD NFTS
-              if (nftSelection[a].NFTokenID == wallets[address].nft) { //CHECK FOR TOKEN ID TO MATCH
-                  if (wallets[address].date + (10 * 86400000) > Date.now()) { //CHECK THE NFT ASSIGNMENT ISN'T OLDER THAN 10 DAYS
+              if (nftSelection[a].NFTokenID == wallets[id].nft) { //CHECK FOR TOKEN ID TO MATCH
+                  if (wallets[id].date + (10 * 86400000) > Date.now()) { //CHECK THE NFT ASSIGNMENT ISN'T OLDER THAN 10 DAYS
                       var nftExists = true
                   }
               }
@@ -100,13 +107,12 @@ async function getRedeemObj(address) {
 
           if (nftExists) { //IF NFT EXISTS
               console.log(`${address} -> NFT ALREADY ASSIGNED`)
-              var nftToSell = wallets[address].nft //SET OLD NFT TO SELL
-              wallets[address].date = Date.now() //RESET 10 DAY TIMER
+              var nftToSell = wallets[id].nft //SET OLD NFT TO SELL
+              wallets[id].date = Date.now() //RESET 10 DAY TIMER
 
           } else { //IF DOESN'T EXIST
               console.log(`${address} -> nft not assigned`)
 
-              console.log(`Checking NFT not claimed`)
               var count = 0
               var assignedToOtherWallet = true
               while(assignedToOtherWallet){
@@ -135,7 +141,7 @@ async function getRedeemObj(address) {
               var nftToSell = nftCheck
 
               //SET VARIABLES IN JSON
-              wallets[address] = {
+              wallets[id] = {
                   "nft": nftToSell,
                   "date": Date.now()
               }
