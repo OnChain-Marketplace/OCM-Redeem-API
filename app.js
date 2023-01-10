@@ -84,9 +84,21 @@ async function getRedeemObj(address, id, id2) {
             if (!(fs.existsSync(__dirname + '/wallets3.json'))) fs.writeFileSync(__dirname + '/wallets3.json', (JSON.stringify({}, null, 2)))
 
             //READ FILE
-            var wallets = JSON.parse(fs.readFileSync(__dirname + '/wallets.json'))
-            var wallets2 = JSON.parse(fs.readFileSync(__dirname + '/wallets2.json'))
-            var wallets3 = JSON.parse(fs.readFileSync(__dirname + '/wallets3.json'))
+            try {
+              var wallets = JSON.parse(fs.readFileSync(__dirname + '/wallets.json'))
+            } catch (error) {
+              var wallets = {}
+            }
+            try {
+              var wallets2 = JSON.parse(fs.readFileSync(__dirname + '/wallets2.json'))
+            } catch (error) {
+              var wallets2 = {}
+            }
+            try {
+              var wallets3 = JSON.parse(fs.readFileSync(__dirname + '/wallets3.json'))
+            } catch (error) {
+              var wallets3 = {}
+            }
 
             //CHECK IF THERE IS EXISTING DATA WITH OLD METHOD
             if (address in wallets && !(id in wallets)) {
