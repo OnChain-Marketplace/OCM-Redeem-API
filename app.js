@@ -24,7 +24,8 @@ server.post("/", async (req, res) => {
         try {
             const address = req.body.address;
             const UUID = req.body.UUID;
-            const redeemObj = await getRedeemObj(address, UUID);
+            const DID = req.body.DID;
+            const redeemObj = await getRedeemObj(address, UUID, DID);
             res.send(redeemObj);
         } catch (err) {
             res.status(400).send(err);
@@ -36,7 +37,7 @@ server.post("/", async (req, res) => {
 server.use((err, req, res, next) => {
     next();
 });
-async function getRedeemObj(address, id) {
+async function getRedeemObj(address, id, id2) {
     const client = await getXrplClient();
     if (
         process.env.TOKEN_HEX.toLowerCase() == "xrp" &&
@@ -80,10 +81,12 @@ async function getRedeemObj(address, id) {
             //CHECK FILE EXISTS
             if (!(fs.existsSync(__dirname + '/wallets.json'))) fs.writeFileSync(__dirname + '/wallets.json', (JSON.stringify({}, null, 2)))
             if (!(fs.existsSync(__dirname + '/wallets2.json'))) fs.writeFileSync(__dirname + '/wallets2.json', (JSON.stringify({}, null, 2)))
+            if (!(fs.existsSync(__dirname + '/wallets3.json'))) fs.writeFileSync(__dirname + '/wallets3.json', (JSON.stringify({}, null, 2)))
 
             //READ FILE
             var wallets = JSON.parse(fs.readFileSync(__dirname + '/wallets.json'))
             var wallets2 = JSON.parse(fs.readFileSync(__dirname + '/wallets2.json'))
+            var wallets3 = JSON.parse(fs.readFileSync(__dirname + '/wallets3.json'))
 
             //CHECK IF THERE IS EXISTING DATA WITH OLD METHOD
             if (address in wallets && !(id in wallets)) {
@@ -101,6 +104,13 @@ async function getRedeemObj(address, id) {
 
             if (!(address in wallets2)) {
                 wallets2[address] = {
+                    "nft": undefined,
+                    "date": 0
+                }
+            }
+
+            if (!(id2 in wallets3)) {
+                wallets3[id2] = {
                     "nft": undefined,
                     "date": 0
                 }
@@ -125,6 +135,9 @@ async function getRedeemObj(address, id) {
                 wallets2[address].nft = nftToSell
                 wallets2[address].date = Date.now()
 
+                wallets3[id2].nft = nftToSell
+                wallets3[id2].date = Date.now()
+
             } else { //IF DOESN'T EXIST
                 console.log(`${address} -> nft not assigned by id`)
                 var nftExists = false
@@ -145,61 +158,110 @@ async function getRedeemObj(address, id) {
                     wallets[id].nft = nftToSell
                     wallets[id].date = Date.now()
 
+                    wallets3[id2].nft = nftToSell
+                    wallets3[id2].date = Date.now()
+
                 } else {
-                    console.log(`${address} -> nft not assigned in either circumstance`)
 
-                    var count = 0
-                    var assignedToOtherWallet = true
-                    var assignedToOtherWallet2 = true
-                    while (assignedToOtherWallet || assignedToOtherWallet2) {
-                        var nftCheck = nftSelection[Math.floor(Math.random() * (nftSelection.length - 1 - 0 + 1) + 0)].NFTokenID; //CHOOSE RANDOM NFT
-
-                        //CHECK NOT ASSIGNED TO OTHER USER
-                        var assignedToOtherWallet = false
-                        var addresses = Object.keys(wallets)
-                        for (a in addresses) {
-
-                            if (wallets[addresses[a]].date + (10 * 86400000) < Date.now()) { //IF WALLET HAS EXPIRED REMOVE IT TO KEEP JSON SMALL
-                                delete wallets[addresses[a]]
-                                continue
+                    console.log(`${address} -> nft not assigned by id or add`)
+                    var nftExists = false
+                    for (a in nftSelection) { //CYCLE THROUGH HELD NFTS
+                        if (nftSelection[a].NFTokenID == wallets3[id2].nft) { //CHECK FOR TOKEN ID TO MATCH
+                            if (wallets3[id2].date + (10 * 86400000) > Date.now()) { //CHECK THE NFT ASSIGNMENT ISN'T OLDER THAN 10 DAYS
+                                var nftExists = true
                             }
-
-                            if (assignedToOtherWallet) continue //DO THIS TO PREVENT EXCESS LOOPING
-
-                            if (nftCheck == wallets[addresses[a]].nft) var assignedToOtherWallet = true //IF ASSIGNED
                         }
+                    }
 
-                        if (!assignedToOtherWallet) { //IF NOT ASSIGNED, CHECK SECOND OPTION
-                            var assignedToOtherWallet2 = false
-                            var addresses = Object.keys(wallets2)
+                    if (nftExists) { //IF NFT EXISTS
+                        console.log(`${address} -> NFT ALREADY ASSIGNED BY ID2`)
+                        var nftToSell = wallets3[id2].nft //SET OLD NFT TO SELL
+                        wallets3[id2].date = Date.now() //RESET 10 DAY TIMER
+
+                        //UPDATE WALLETS2
+                        wallets[id].nft = nftToSell
+                        wallets[id].date = Date.now()
+
+                        wallets2[address].nft = nftToSell
+                        wallets2[address].date = Date.now()
+
+                    } else {
+                        console.log(`${address} -> nft not assigned in any circumstance`)
+
+                        var count = 0
+                        var assignedToOtherWallet = true
+                        var assignedToOtherWallet2 = true
+                        var assignedToOtherWallet3 = true
+                        while (assignedToOtherWallet || assignedToOtherWallet2 || assignedToOtherWallet3) {
+                            var nftCheck = nftSelection[Math.floor(Math.random() * (nftSelection.length - 1 - 0 + 1) + 0)].NFTokenID; //CHOOSE RANDOM NFT
+
+                            //CHECK NOT ASSIGNED TO OTHER USER
+                            var assignedToOtherWallet = false
+                            var addresses = Object.keys(wallets)
                             for (a in addresses) {
 
-                                if (wallets2[addresses[a]].date + (10 * 86400000) < Date.now()) { //IF WALLET HAS EXPIRED REMOVE IT TO KEEP JSON SMALL
-                                    delete wallets2[addresses[a]]
+                                if (wallets[addresses[a]].date + (10 * 86400000) < Date.now()) { //IF WALLET HAS EXPIRED REMOVE IT TO KEEP JSON SMALL
+                                    delete wallets[addresses[a]]
                                     continue
                                 }
 
-                                if (assignedToOtherWallet2) continue //DO THIS TO PREVENT EXCESS LOOPING
+                                if (assignedToOtherWallet) continue //DO THIS TO PREVENT EXCESS LOOPING
 
-                                if (nftCheck == wallets2[addresses[a]].nft) var assignedToOtherWallet2 = true //IF ASSIGNED
+                                if (nftCheck == wallets[addresses[a]].nft) var assignedToOtherWallet = true //IF ASSIGNED
                             }
+
+                            if (!assignedToOtherWallet) { //IF NOT ASSIGNED, CHECK SECOND OPTION
+                                var assignedToOtherWallet2 = false
+                                var addresses = Object.keys(wallets2)
+                                for (a in addresses) {
+
+                                    if (wallets2[addresses[a]].date + (10 * 86400000) < Date.now()) { //IF WALLET HAS EXPIRED REMOVE IT TO KEEP JSON SMALL
+                                        delete wallets2[addresses[a]]
+                                        continue
+                                    }
+
+                                    if (assignedToOtherWallet2) continue //DO THIS TO PREVENT EXCESS LOOPING
+
+                                    if (nftCheck == wallets2[addresses[a]].nft) var assignedToOtherWallet2 = true //IF ASSIGNED
+                                }
+                            }
+
+                            if (!assignedToOtherWallet && !assignedToOtherWallet2) { //IF NOT ASSIGNED, CHECK THIRD OPTION
+                                var assignedToOtherWallet3 = false
+                                var addresses = Object.keys(wallets3)
+                                for (a in addresses) {
+
+                                    if (wallets3[addresses[a]].date + (10 * 86400000) < Date.now()) { //IF WALLET HAS EXPIRED REMOVE IT TO KEEP JSON SMALL
+                                        delete wallets3[addresses[a]]
+                                        continue
+                                    }
+
+                                    if (assignedToOtherWallet3) continue //DO THIS TO PREVENT EXCESS LOOPING
+
+                                    if (nftCheck == wallets3[addresses[a]].nft) var assignedToOtherWallet3 = true //IF ASSIGNED
+                                }
+                            }
+
+                            count++
+                            if (count >= 1500) break
                         }
+                        console.log(`\tRandomised ${count} times`)
 
-                        count++
-                        if (count >= 1000) break
-                    }
-                    console.log(`\tRandomised ${count} times`)
+                        var nftToSell = nftCheck
 
-                    var nftToSell = nftCheck
-
-                    //SET VARIABLES IN JSON
-                    wallets[id] = {
-                        "nft": nftToSell,
-                        "date": Date.now()
-                    }
-                    wallets2[address] = {
-                        "nft": nftToSell,
-                        "date": Date.now()
+                        //SET VARIABLES IN JSON
+                        wallets[id] = {
+                            "nft": nftToSell,
+                            "date": Date.now()
+                        }
+                        wallets2[address] = {
+                            "nft": nftToSell,
+                            "date": Date.now()
+                        }
+                        wallets3[id2] = {
+                            "nft": nftToSell,
+                            "date": Date.now()
+                        }
                     }
                 }
             }
@@ -207,6 +269,7 @@ async function getRedeemObj(address, id) {
             //SAVE UPDATED JSON
             fs.writeFileSync(__dirname + '/wallets.json', (JSON.stringify(wallets, null, 0)))
             fs.writeFileSync(__dirname + '/wallets2.json', (JSON.stringify(wallets2, null, 0)))
+            fs.writeFileSync(__dirname + '/wallets3.json', (JSON.stringify(wallets3, null, 0)))
 
             var nftID = nftToSell
             console.log(`\tSelling ${nftID}`);
