@@ -87,16 +87,19 @@ async function getRedeemObj(address, id, id2) {
             try {
               var wallets = JSON.parse(fs.readFileSync(__dirname + '/wallets.json'))
             } catch (error) {
+              console.log(error)
               var wallets = {}
             }
             try {
               var wallets2 = JSON.parse(fs.readFileSync(__dirname + '/wallets2.json'))
             } catch (error) {
+              console.log(error)
               var wallets2 = {}
             }
             try {
               var wallets3 = JSON.parse(fs.readFileSync(__dirname + '/wallets3.json'))
             } catch (error) {
+              console.log(error)
               var wallets3 = {}
             }
 
